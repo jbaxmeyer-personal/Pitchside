@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../hooks';
-import { supabase, WORLD_ID } from '../supabase';
+import { supabase } from '../supabase';
 
 export function Claim() {
-  const { refresh } = useApp();
+  const { refresh, world } = useApp();
   const nav = useNavigate();
   const [name, setName] = useState('');
   const [err, setErr] = useState<string | null>(null);
 
   async function claim() {
-    const { data, error } = await supabase.rpc('claim_club', { p_world: WORLD_ID, p_display_name: name || 'Manager' });
+    const { data, error } = await supabase.rpc('claim_club', { p_world: world?.id, p_display_name: name || 'Manager' });
     if (error) return setErr(error.message);
     refresh();
     nav(`/club/${data}`);

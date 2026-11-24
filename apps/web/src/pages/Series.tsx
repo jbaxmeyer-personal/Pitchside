@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { clubsById, fixturesFor, seriesById } from '../data';
 import type { Series, Standing } from '../data';
 import { useApp, useLoad } from '../hooks';
-import { supabase, WORLD_ID } from '../supabase';
+import { supabase } from '../supabase';
 import { FixtureLine } from './Club';
 
 export function SeriesPage() {
@@ -59,10 +59,12 @@ export function SeriesPage() {
 }
 
 export function LeaguePage() {
+  const { world } = useApp();
   const { data } = useLoad(async () => {
-    const { data: s } = await supabase.from('series').select('id, level, number, name').eq('world_id', WORLD_ID).order('level').order('number');
+    if (!world) return [];
+    const { data: s } = await supabase.from('series').select('id, level, number, name').eq('world_id', world.id).order('level').order('number');
     return (s ?? []) as Series[];
-  }, []);
+  }, [world?.id]);
   if (!data) return <p className="muted">Loading…</p>;
   const levels = [...new Set(data.map((s) => s.level))];
   return (

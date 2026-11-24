@@ -15,7 +15,8 @@ Deno.serve(async (req) => {
   if (!p?.is_admin) return json({ error: 'admins only' }, 403);
 
   const body = await req.json().catch(() => ({}));
-  const worldId = Number(body.worldId ?? 1);
+  const [live] = await db.query<{ id: number }>(`select id from worlds where is_live order by id limit 1`);
+  const worldId = Number(body.worldId ?? live?.id);
   if (body.action === 'tick') return json(await tick(db, worldId));
   if (WARPS.includes(body.action)) {
     const to = await warp(db, worldId, body.action);

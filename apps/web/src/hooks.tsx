@@ -1,7 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { supabase, WORLD_ID } from './supabase';
+import { supabase } from './supabase';
 
 export interface World { id: number; name: string; season: number; season_start: string; clock_offset_s: number }
 export interface Me { display_name: string | null; is_admin: boolean; club_id: number | null }
@@ -33,7 +33,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    supabase.from('worlds').select('id, name, season, season_start, clock_offset_s').eq('id', WORLD_ID).maybeSingle()
+    supabase.from('worlds').select('id, name, season, season_start, clock_offset_s').eq('is_live', true).order('id').limit(1).maybeSingle()
       .then(({ data }) => setWorld(data as World | null));
   }, [version]);
 

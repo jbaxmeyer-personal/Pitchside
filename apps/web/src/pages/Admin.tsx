@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp, when } from '../hooks';
-import { supabase, WORLD_ID } from '../supabase';
+import { supabase } from '../supabase';
 
 const ACTIONS: Array<[string, string]> = [
   ['tick', 'Run the scheduler now'],
@@ -11,14 +11,14 @@ const ACTIONS: Array<[string, string]> = [
 ];
 
 export function AdminPage() {
-  const { me, now, refresh } = useApp();
+  const { me, now, refresh, world } = useApp();
   const [log, setLog] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   if (!me?.is_admin) return <p className="muted">Admins only.</p>;
 
   async function run(action: string) {
     setBusy(true);
-    const { data, error } = await supabase.functions.invoke('admin', { body: { action, worldId: WORLD_ID } });
+    const { data, error } = await supabase.functions.invoke('admin', { body: { action, worldId: world?.id } });
     setBusy(false);
     setLog((l) => [`${action}: ${error ? error.message : JSON.stringify(data)}`, ...l]);
     refresh();
