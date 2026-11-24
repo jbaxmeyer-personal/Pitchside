@@ -2,3 +2,6 @@ node_modules
 .DS_Store
 *.log
 .env*
+supabase/functions/_shared/game.js
+supabase/.temp
+apps/web/dist

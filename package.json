@@ -1,16 +1,24 @@
 {
   "name": "pitchside",
   "private": true,
-  "workspaces": ["packages/*", "tools/*"],
+  "workspaces": [
+    "packages/*",
+    "tools/*",
+    "apps/*"
+  ],
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc -p packages/engine && tsc -p tools/harness",
-    "harness": "tsx tools/harness/src/run.ts"
+    "typecheck": "tsc -p packages/engine && tsc -p packages/game && tsc -p tools/harness",
+    "harness": "tsx tools/harness/src/run.ts",
+    "build:functions": "esbuild packages/game/src/index.ts --bundle --format=esm --platform=neutral --main-fields=module,main --target=es2022 --outfile=supabase/functions/_shared/game.js",
+    "build": "npm run build -w @pitchside/web"
   },
   "devDependencies": {
-    "typescript": "^5.6.0",
+    "@electric-sql/pglite": "^0.6.0",
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.28.2",
     "tsx": "^4.19.0",
-    "vitest": "^2.1.0",
-    "@types/node": "^22.0.0"
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
   }
 }

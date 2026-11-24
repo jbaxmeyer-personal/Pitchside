@@ -10,15 +10,24 @@ Plan and spec: https://claude.ai/artifact/W54v7Aq53J2vCaDxUbVZbS
 | Path | What |
 | --- | --- |
 | `packages/engine` | Pure, seeded TypeScript match engine. No I/O. |
+| `packages/game` | Server-side game logic: world generator, season schedule, cup, promotion/relegation, time-warp, scheduler tick. Pure TS over a tiny `Db` interface. |
+| `apps/web` | Vite + React app, deployed to GitHub Pages. Talks to Supabase directly. |
+| `supabase/migrations` | Schema, row-level security, RPCs (`claim_club`, `save_orders`, `rename_club`), pg_cron schedule. |
+| `supabase/functions` | `tick` (runs every 2 min from pg_cron; creates the USA world on first run) and `admin` (time-warps, for admins). They import a bundle of `packages/game` built by `npm run build:functions`. |
 | `tools/harness` | Balance harness: plays every formation x tactic against every other at equal squad strength. |
 
-Coming next: `apps/web` (Next.js), `packages/db` (Supabase schema), `packages/portraits`, the job runner.
+## Deploy
+
+Every push to `main` runs `.github/workflows/deploy.yml`: tests, then migrations + functions to Supabase, then the web app to Pages.
+Needs repo secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF` and variables `SUPABASE_URL`, `SUPABASE_ANON_KEY`.
+The first account to take over a club becomes admin and gets the Admin page (time-warp).
 
 ## Commands
 
 ```
 npm install
-npm test            # engine tests
+npm test            # engine + game tests (game tests run on PGlite)
+npm run dev -w @pitchside/web   # needs VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY
 npm run typecheck
 N=40 npm run harness   # balance report (N matches per pairing)
 npx tsx tools/harness/src/diag.ts   # chance breakdown for sample matchups
