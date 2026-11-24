@@ -65,7 +65,7 @@ jobs:
           echo "--- last http responses:"
           sql "select status_code, left(content::text, 300) as content, error_msg, created from net._http_response order by created desc limit 3"
           echo "--- public API, as the web app sees it:"
-          curl -sS "${{ vars.SUPABASE_URL }}/rest/v1/worlds?select=id,name,is_live" -H "apikey: ${{ vars.SUPABASE_ANON_KEY }}"; echo
+          curl -sS "https://$PROJECT_REF.supabase.co/rest/v1/worlds?select=id,name,is_live" -H "apikey: ${{ vars.SUPABASE_ANON_KEY }}"; echo
 
   web:
     needs: test
