@@ -37,7 +37,7 @@ jobs:
       - run: npm run build:functions
       - run: supabase link --project-ref "$PROJECT_REF"
       - name: Apply database migrations
-        run: yes | supabase db push --include-all
+        run: yes | supabase db push --linked --include-all
       - name: Deploy edge functions
         run: supabase functions deploy tick admin --project-ref "$PROJECT_REF"
       - name: Point the scheduler at the functions
