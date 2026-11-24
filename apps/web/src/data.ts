@@ -24,7 +24,7 @@ export async function club(id: number): Promise<Club | null> {
 }
 
 export async function squad(clubId: number): Promise<PlayerRow[]> {
-  const { data, error } = await supabase.from('players').select(`id, club_id, first_name, last_name, age, form, wage, portrait_seed, ${SKILL_SELECT}`).eq('club_id', clubId);
+  const { data, error } = await supabase.from('players_public').select(`id, club_id, first_name, last_name, age, form, wage, portrait_seed, ${SKILL_SELECT}`).eq('club_id', clubId);
   if (error) throw error.message;
   return (data as unknown as Array<Record<string, unknown>>).map((r) => ({ ...(r as unknown as PlayerRow), skills: skillsFromRow(r) }));
 }

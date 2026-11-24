@@ -51,6 +51,12 @@ describe('world', () => {
     await expect(db.query(`update players set scoring = 25 where id = (select min(id) from players)`)).rejects.toThrow();
   });
 
+  it('shows whole skill levels to players', async () => {
+    const [p] = await db.query<{ scoring: number; real: number }>(
+      `select v.scoring, p.scoring as real from players_public v join players p using (id) where p.scoring <> floor(p.scoring) limit 1`);
+    expect(p!.scoring).toBe(Math.floor(p!.real));
+  });
+
   it('builds the full pyramid with unique club names', async () => {
     expect(await count(`select count(*) n from series where world_id = $1`, [worldId])).toBe(85);
     expect(await count(`select count(*) n from clubs where world_id = $1`, [worldId])).toBe(680);

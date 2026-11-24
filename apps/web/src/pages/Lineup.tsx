@@ -102,7 +102,7 @@ export function LineupPage() {
                     <div className="slotlabel">{s}</div>
                     <select value={slots[s]} onChange={(e) => setSlots({ ...slots, [s]: e.target.value })}>
                       {[...players].sort((a, b) => fit(s, b.skills) - fit(s, a.skills)).map((p) => (
-                        <option key={p.id} value={p.id}>{p.name} ({fit(s, p.skills).toFixed(1)})</option>
+                        <option key={p.id} value={p.id}>{p.name} ({Math.floor(fit(s, p.skills))})</option>
                       ))}
                     </select>
                   </div>
