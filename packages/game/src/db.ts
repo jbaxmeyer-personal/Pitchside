@@ -19,7 +19,7 @@ export async function insertMany(
     const chunk = rows.slice(i, i + 2000);
     const res = await db.query(
       `insert into ${table} (${names.join(', ')})
-       select ${names.join(', ')} from jsonb_to_recordset($1::jsonb) as x(${defs})
+       select ${names.join(', ')} from jsonb_to_recordset($1::text::jsonb) as x(${defs})
        ${returning ? `returning ${returning}` : ''}`,
       [JSON.stringify(chunk)],
     );

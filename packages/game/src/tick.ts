@@ -80,7 +80,7 @@ export async function playDue(db: Db, worldId: number, now: Date, limit = 400): 
         [f.id, hg, ag, winner],
       );
       await tx.query(
-        `insert into match_results (fixture_id, result, lineups) values ($1, $2::jsonb, $3::jsonb) on conflict (fixture_id) do nothing`,
+        `insert into match_results (fixture_id, result, lineups) values ($1, $2::text::jsonb, $3::text::jsonb) on conflict (fixture_id) do nothing`,
         [f.id, JSON.stringify({ ...result, penalties }), JSON.stringify({ home: snapshot(home), away: snapshot(away) })],
       );
       if (f.competition === 'cup' && winner !== null) {
