@@ -33,6 +33,8 @@ jobs:
         with: { node-version: 22, cache: npm }
       - uses: supabase/setup-cli@v1
         with: { version: latest }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
       - run: npm ci
       - run: npm run build:functions
       - run: supabase link --project-ref "$PROJECT_REF"
