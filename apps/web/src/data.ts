@@ -1,3 +1,4 @@
+import { SKILL_SELECT, skillsFromRow } from '@pitchside/game';
 import { supabase } from './supabase';
 
 export interface Club { id: number; name: string; city: string; colors: { primary: string; secondary: string }; badge_seed: number; owner: string | null; cash: number; fans: number; series_id: number }
@@ -23,9 +24,9 @@ export async function club(id: number): Promise<Club | null> {
 }
 
 export async function squad(clubId: number): Promise<PlayerRow[]> {
-  const { data, error } = await supabase.from('players').select('id, club_id, first_name, last_name, age, skills, form, wage, portrait_seed').eq('club_id', clubId);
+  const { data, error } = await supabase.from('players').select(`id, club_id, first_name, last_name, age, form, wage, portrait_seed, ${SKILL_SELECT}`).eq('club_id', clubId);
   if (error) throw error.message;
-  return data as PlayerRow[];
+  return (data as unknown as Array<Record<string, unknown>>).map((r) => ({ ...(r as unknown as PlayerRow), skills: skillsFromRow(r) }));
 }
 
 export async function seriesById(id: number): Promise<Series | null> {

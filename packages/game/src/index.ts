@@ -6,3 +6,4 @@ export type { NaturalRole } from './lineup.js';
 export { createSeason, advanceCup, roundRobin } from './season.js';
 export { tick, tickAll, playDue, rollSeason, warp, worldNow, lineupFor, rankTable } from './tick.js';
 export * from './time.js';
+export { SKILL_COLUMNS, SKILL_SELECT, skillsFromRow, skillsToRow } from './skills.js';

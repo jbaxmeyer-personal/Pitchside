@@ -3,10 +3,11 @@ import type { Lineup, Player, Skills, Slot, Tactics, TeamInput } from '@pitchsid
 import type { Db } from './db.js';
 import { autoPick, DEFAULT_TACTICS } from './lineup.js';
 import { advanceCup, createSeason } from './season.js';
+import { SKILL_SELECT, skillsFromRow } from './skills.js';
 import { seasonEnd } from './time.js';
 
 interface FixtureRow { id: number; competition: string; round: number; home_id: number; away_id: number; seed: number }
-interface PlayerRow { id: number; club_id: number; first_name: string; last_name: string; skills: Skills; form: number }
+interface PlayerRow { id: number; club_id: number; first_name: string; last_name: string; form: number; [skill: string]: unknown }
 interface OrdersRow { club_id: number; slots: Record<string, number>; tactics: Tactics }
 
 export async function worldNow(db: Db, worldId: number): Promise<Date> {
@@ -37,14 +38,14 @@ export async function playDue(db: Db, worldId: number, now: Date, limit = 400): 
 
   const clubIds = [...new Set(fixtures.flatMap((f) => [f.home_id, f.away_id]))];
   const playerRows = await db.query<PlayerRow>(
-    `select id, club_id, first_name, last_name, skills, form from players where club_id = any($1::int[])`, [clubIds],
+    `select id, club_id, first_name, last_name, form, ${SKILL_SELECT} from players where club_id = any($1::int[])`, [clubIds],
   );
   const orderRows = await db.query<OrdersRow>(`select club_id, slots, tactics from club_orders where club_id = any($1::int[])`, [clubIds]);
   const clubRows = await db.query<{ id: number; name: string }>(`select id, name from clubs where id = any($1::int[])`, [clubIds]);
 
   const squads = new Map<number, Player[]>();
   for (const p of playerRows) {
-    const player: Player = { id: String(p.id), name: `${p.first_name} ${p.last_name}`, skills: p.skills, form: Number(p.form) };
+    const player: Player = { id: String(p.id), name: `${p.first_name} ${p.last_name}`, skills: skillsFromRow(p), form: Number(p.form) };
     squads.set(p.club_id, [...(squads.get(p.club_id) ?? []), player]);
   }
   const orders = new Map(orderRows.map((o) => [o.club_id, o]));

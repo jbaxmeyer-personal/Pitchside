@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { Db } from '../src/index.js';
-import { autoPick, generateWorld, initWorld, roundRobin, tick, warp, worldNow } from '../src/index.js';
+import { autoPick, generateWorld, initWorld, roundRobin, SKILL_SELECT, skillsFromRow, tick, warp, worldNow } from '../src/index.js';
 
 const MIGRATIONS = join(__dirname, '../../../supabase/migrations');
 
@@ -43,6 +43,12 @@ const count = async (sql: string, params: unknown[] = []) => Number((await db.qu
 describe('world', () => {
   it('generates the same country from the same seed', () => {
     expect(generateWorld(5).clubs.slice(0, 3)).toEqual(generateWorld(5).clubs.slice(0, 3));
+  });
+
+  it('stores skills as checked columns', async () => {
+    const [p] = await db.query<Record<string, unknown>>(`select ${SKILL_SELECT} from players limit 1`);
+    expect(Object.keys(p!)).toHaveLength(10);
+    await expect(db.query(`update players set scoring = 25 where id = (select min(id) from players)`)).rejects.toThrow();
   });
 
   it('builds the full pyramid with unique club names', async () => {
@@ -91,8 +97,8 @@ describe('clubs and orders', () => {
 
   it('accepts a valid lineup and rejects someone else\'s player', async () => {
     const [club] = await db.query<{ id: number }>(`select id from clubs where owner = $1`, [user]);
-    const players = await db.query<{ id: number; skills: never; first_name: string }>(`select id, skills, first_name from players where club_id = $1`, [club!.id]);
-    const lineup = autoPick(players.map((p) => ({ id: String(p.id), name: p.first_name, skills: p.skills, form: 1 })), '4-3-3');
+    const players = await db.query<Record<string, unknown>>(`select id, first_name, ${SKILL_SELECT} from players where club_id = $1`, [club!.id]);
+    const lineup = autoPick(players.map((p) => ({ id: String(p.id), name: String(p.first_name), skills: skillsFromRow(p), form: 1 })), '4-3-3');
     const slots = Object.fromEntries(Object.entries(lineup.slots).map(([s, p]) => [s, Number(p!.id)]));
     await asUser(() => db.query(`select save_orders($1::jsonb, $2::jsonb)`, [JSON.stringify(slots), JSON.stringify({ press: 'high' })]));
     expect(await count(`select count(*) n from club_orders where club_id = $1`, [club!.id])).toBe(1);

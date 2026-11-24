@@ -4,6 +4,7 @@ import type { Db } from './db.js';
 import { insertMany } from './db.js';
 import { CITIES, CLUB_SUFFIXES, FIRST_NAMES, KIT_COLORS, LAST_NAMES } from './names.js';
 import { createSeason } from './season.js';
+import { SKILL_COLUMNS, skillsToRow } from './skills.js';
 import { nextMonday } from './time.js';
 
 /** Series per level: 1, 4, 16, 64. Eight clubs each. */
@@ -152,10 +153,13 @@ export async function initWorld(db: Db, opts: { name: string; seed: number; now:
     const clubId = new Map(gen.clubs.map((c, i) => [c.key, clubs[i]!.id as number]));
 
     await insertMany(tx, 'players',
-      { world_id: 'int', club_id: 'int', first_name: 'text', last_name: 'text', age: 'int', skills: 'jsonb', form: 'real', portrait_seed: 'int', wage: 'int' },
+      {
+        world_id: 'int', club_id: 'int', first_name: 'text', last_name: 'text', age: 'int', form: 'real', portrait_seed: 'int', wage: 'int',
+        ...Object.fromEntries(Object.values(SKILL_COLUMNS).map((c) => [c, 'real'])),
+      },
       gen.players.map((p) => ({
         world_id: worldId, club_id: clubId.get(p.club_key), first_name: p.first_name, last_name: p.last_name,
-        age: p.age, skills: p.skills, form: p.form, portrait_seed: p.portrait_seed, wage: p.wage,
+        age: p.age, form: p.form, portrait_seed: p.portrait_seed, wage: p.wage, ...skillsToRow(p.skills),
       })));
 
     await createSeason(tx, worldId, 1, start, opts.seed);
