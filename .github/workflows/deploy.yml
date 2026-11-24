@@ -37,9 +37,9 @@ jobs:
       - run: npm run build:functions
       - run: supabase link --project-ref "$PROJECT_REF"
       - name: Apply database migrations
-        run: yes | supabase db push --linked --include-all
+        run: supabase db push --remote --include-all --yes
       - name: Deploy edge functions
-        run: supabase functions deploy tick admin --project-ref "$PROJECT_REF"
+        run: supabase functions deploy tick admin --project-ref "$PROJECT_REF" --yes
       - name: Point the scheduler at the functions
         run: |
           curl -sSf -X POST "https://api.supabase.com/v1/projects/$PROJECT_REF/database/query" \
