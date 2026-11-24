@@ -64,6 +64,9 @@ jobs:
           sql "select status, return_message, start_time from cron.job_run_details order by start_time desc limit 3"
           echo "--- last http responses:"
           sql "select status_code, left(content::text, 300) as content, error_msg, created from net._http_response order by created desc limit 3"
+          echo "--- function logs:"
+          Q=$(jq -rn --arg q "select timestamp, event_message from function_logs order by timestamp desc limit 15" '$q|@uri')
+          curl -sS "https://api.supabase.com/v1/projects/$PROJECT_REF/analytics/endpoints/logs.all?sql=$Q" -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" | head -c 6000 || true
 
   web:
     needs: test

@@ -6,10 +6,15 @@ Deno.serve(async (req) => {
   const secret = await config('cron_secret');
   if (!secret || req.headers.get('x-pitchside-secret') !== secret) return json({ error: 'forbidden' }, 403);
 
-  const [w] = await db.query<{ n: number }>(`select count(*)::int as n from worlds`);
-  if (!w || w.n === 0) {
-    const id = await initWorld(db, { name: 'USA', seed: 2026, now: new Date(), live: true });
-    return json({ created: id });
+  try {
+    const [w] = await db.query<{ n: number }>(`select count(*)::int as n from worlds`);
+    if (!w || w.n === 0) {
+      const id = await initWorld(db, { name: 'USA', seed: 2026, now: new Date(), live: true });
+      return json({ created: id });
+    }
+    return json(await tickAll(db));
+  } catch (e) {
+    console.error(e);
+    return json({ error: String(e), stack: e instanceof Error ? e.stack : undefined }, 500);
   }
-  return json(await tickAll(db));
 });
