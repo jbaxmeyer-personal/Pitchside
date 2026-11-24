@@ -45,6 +45,25 @@ jobs:
           curl -sSf -X POST "https://api.supabase.com/v1/projects/$PROJECT_REF/database/query" \
             -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
             -d "{\"query\": \"insert into public.app_config (key, value) values ('functions_url', 'https://$PROJECT_REF.supabase.co/functions/v1') on conflict (key) do update set value = excluded.value\"}"
+      - name: Run the scheduler once and report status
+        run: |
+          sql() { curl -sS -X POST "https://api.supabase.com/v1/projects/$PROJECT_REF/database/query" \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
+            -d "$(jq -n --arg q "$1" '{query: $q}')"; echo; }
+          SECRET=$(sql "select value from public.app_config where key = 'cron_secret'" | jq -r '.[0].value')
+          echo "::add-mask::$SECRET"
+          echo "--- tick:"
+          curl -sS -m 140 -X POST "https://$PROJECT_REF.supabase.co/functions/v1/tick" -H "x-pitchside-secret: $SECRET" -H "content-type: application/json" -d '{}' || true
+          echo; echo "--- worlds:"
+          sql "select id, name, season, season_start, clock_offset_s from public.worlds"
+          echo "--- clubs:"
+          sql "select count(*) from public.clubs"
+          echo "--- cron jobs:"
+          sql "select jobid, schedule, active from cron.job"
+          echo "--- last cron runs:"
+          sql "select status, return_message, start_time from cron.job_run_details order by start_time desc limit 3"
+          echo "--- last http responses:"
+          sql "select status_code, left(content::text, 300) as content, error_msg, created from net._http_response order by created desc limit 3"
 
   web:
     needs: test
