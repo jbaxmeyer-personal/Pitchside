@@ -1,0 +1,16 @@
+{
+  "name": "pitchside",
+  "private": true,
+  "workspaces": ["packages/*", "tools/*"],
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p packages/engine && tsc -p tools/harness",
+    "harness": "tsx tools/harness/src/run.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "tsx": "^4.19.0",
+    "vitest": "^2.1.0",
+    "@types/node": "^22.0.0"
+  }
+}
